@@ -12,10 +12,11 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Set Up CyVerse Working Environment
 
 create the following folders in your environment:
-(1) raw_reads
-(2) trimmed
-(3) filtered
-
+```
+mkdir raw_reads
+mkdir trimmed
+mkdir filtered
+```
 
 ## Cutadapt Command Line
 
@@ -180,6 +181,8 @@ seqtab.nochim <- removeBimeraDenovo(seqtab, multithread=TRUE, verbose=TRUE)
 dim(seqtab.nochim)
 
 sum(seqtab.nochim)/sum(seqtab)
+
+write.csv(seqtab.nochim, "seqtab-nochim.csv")
 ```
 
 ```{r readCounts}
@@ -194,5 +197,101 @@ summary_tab <- data.frame(row.names=samples, dada2_input=filtered_out[,1],
 
 write.table(summary_tab, "read-count-tracking.tsv", quote=FALSE, sep="\t", col.names=NA)
 ```
+
+
+## ASV Tables
+
+``` {R ASVFastaFile}
+asv_seqs <- colnames(seqtab.nochim)
+asv_headers <- vector(dim(seqtab.nochim)[2], mode="character")
+
+for (i in 1:dim(seqtab.nochim)[2]) {
+  asv_headers[i] <- paste(">ASV", i, sep="_")
+}
+
+asv_fasta <- c(rbind(asv_headers, asv_seqs))
+write(asv_fasta, "ASVs.fa")
+```
+
+``` {R CountTable}
+asv_tab <- t(seqtab.nochim)
+row.names(asv_tab) <- sub(">", "", asv_headers)
+write.table(asv_tab, "ASVs_counts.tsv", sep="\t", quote=F, col.names=NA)
+```
+
+
+## Assign Taxonomy
+
+the following lines should be run in the terminal window:
+(changes your working directory away from raw_reads and to home)
+(gets the pr2 taxonomic dataset from git using wget)
+
+```
+cd ../
+
+wget https://github.com/pr2database/pr2database/releases/download/v4.14.0/pr2_version_4.14.0_SSU_dada2.fasta.gz
+```
+
+(now back in the R Console)
+``` {R Assign Taxonomy}
+taxa <- assignTaxonomy(seqtab.nochim, "pr2_version_4.14.0_SSU_dada2.fasta.gz", multithread=T,minBoot=50)
+
+write.csv(taxa, "ASV_taxa.csv")
+```
+
+
+## Phun with Phyloseq
+
+``` {R phyloseqEnvironment}
+
+# Run the following four lines only if you lost connection to CyVerse
+taxa <- read.csv("ASV_taxa.csv", header=T, row.names=1)
+head(taxa) ##859 of 8 obs when read in (verses character vector)
+seqtab.nochim <- read.csv("seqtab-nochim.csv", header=T, row.names=1)
+head(seqtab.nochim) 
+
+#Run these lines no matter what
+metadata <- read.table("info_18S.txt", sep = "\t", header = T)
+head(metadata)
+rownames(metadata)
+
+
+library(phyloseq)
+library(ggplot2)
+
+```
+
+
+``` {R CreatePhyloSeqObjects}
+
+rawotus <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=T), 
+                    sample_data(metadata), 
+                    tax_table(as.matrix(taxa2)))
+rawotus@sam_data
+nsamples(rawotus)
+head(rawotus@otu_table)
+head(rawotus@tax_table)
+
+#remove any ASVs that appear <50x per sample
+ps_filt_samples <- prune_samples(sample_sums(rawotus)>=500, rawotus)
+#ASVs must appear in more than one sample and in that sample have a count greater than 2
+wh0 <-  genefilter_sample(ps_filt_samples, filterfun_sample(function(x) x > 2), A=2)
+ps <- prune_taxa(wh0, ps_filt_samples)
+
+```
+
+
+``` {R PlotTop20}
+top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:200]
+ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
+ps.top20 <- prune_taxa(top20, ps.top20)
+ps.top20@sam_data
+p <- plot_bar(ps.top20, x="JulDay", fill="Phylum") +
+  theme(text = element_text(size = 14) , legend.position = "right") +
+  scale_x_continuous(breaks=c(186,192,195,199,205,212,219,227,233,241,255,268,285))+
+  facet_wrap(~Layer)
+p
+```
+
 
 
