@@ -11,11 +11,22 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Set Up CyVerse Working Environment
 
-create the following folders in your environment:
+the following lines should be run in the terminal window:
+[you should be in your home directory]
 ```
+mkdir fastqc
 mkdir raw_reads
 mkdir trimmed
 mkdir filtered
+```
+
+## FastQC Command Line
+
+the following lines should be run in the terminal window:
+[you should be in your home directory]
+```
+fastqc raw_reads/*fastq.gz
+mv raw_reads/*fastqc* fastqc
 ```
 
 ## Cutadapt Command Line
@@ -23,6 +34,7 @@ mkdir filtered
 the following lines should be run in the terminal window:
 (copies the raw reads to your working directory)
 (creates a document with the sample names to loop through)
+[start in your home directory]
 
 ```
 cp work/5K_Highland_18S/* raw_reads
@@ -34,6 +46,7 @@ ls *_R1_001.fastq.gz | cut -f1 -d "R" > samples
 
 the following lines should be run in the terminal at the same time:
 (runs cutadapt for all files)
+[you should now be in your raw_reads directory]
 
 ```
 for sample in $(cat samples)
@@ -49,6 +62,7 @@ done
 
 the following lines should be run in the terminal window:
 (copies the trimmed reads to your trimmed directory)
+[you should be in your raw reads directory]
 
 ```
 mv *trimmed* ../trimmed/
