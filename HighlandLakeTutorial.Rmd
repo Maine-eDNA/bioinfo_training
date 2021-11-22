@@ -261,18 +261,8 @@ nsamples(rawotus)
 head(rawotus@otu_table)
 head(rawotus@tax_table)
 
-```
-
-
-
-
-
-
-``` {R CreatePhyloSeqObjects}
-
-
-#remove any ASVs that appear <50x per sample
-ps_filt_samples <- prune_samples(sample_sums(rawotus)>=500, rawotus)
+#remove any ASVs that appear <20x per sample
+ps_filt_samples <- prune_samples(sample_sums(rawotus)>=20, rawotus)
 #ASVs must appear in more than one sample and in that sample have a count greater than 2
 wh0 <-  genefilter_sample(ps_filt_samples, filterfun_sample(function(x) x > 2), A=2)
 ps <- prune_taxa(wh0, ps_filt_samples)
@@ -280,11 +270,13 @@ ps <- prune_taxa(wh0, ps_filt_samples)
 ```
 
 
+
 ``` {R PlotTop20}
 top20 <- names(sort(taxa_sums(ps), decreasing=TRUE))[1:200]
 ps.top20 <- transform_sample_counts(ps, function(OTU) OTU/sum(OTU))
 ps.top20 <- prune_taxa(top20, ps.top20)
-ps.top20@sam_data
+#ps.top20@sam_data
+
 p <- plot_bar(ps.top20, x="JulDay", fill="Phylum") +
   theme(text = element_text(size = 14) , legend.position = "right") +
   scale_x_continuous(breaks=c(186,192,195,199,205,212,219,227,233,241,255,268,285))+
