@@ -236,41 +236,40 @@ wget https://github.com/pr2database/pr2database/releases/download/v4.14.0/pr2_ve
 ``` {R Assign Taxonomy}
 taxa <- assignTaxonomy(seqtab.nochim, "pr2_version_4.14.0_SSU_dada2.fasta.gz", multithread=T,minBoot=50)
 
+rownames(taxa) <- gsub(pattern=">", replacement="", x=asv_headers)
+
 write.csv(taxa, "ASV_taxa.csv")
 ```
 
 
 ## Phun with Phyloseq
 
-``` {R phyloseqEnvironment}
-
-# Run the following four lines only if you lost connection to CyVerse
-taxa <- read.csv("ASV_taxa.csv", header=T, row.names=1)
-head(taxa) ##859 of 8 obs when read in (verses character vector)
-seqtab.nochim <- read.csv("seqtab-nochim.csv", header=T, row.names=1)
-head(seqtab.nochim) 
-
-#Run these lines no matter what
-metadata <- read.table("info_18S.txt", sep = "\t", header = T)
-head(metadata)
-rownames(metadata)
-
+``` {R PhyloseqObj}
 
 library(phyloseq)
 library(ggplot2)
 
-```
+info <- read.table("info_18S.txt", header=T,sep="\t")
+rownames(info) <- rownames(seqtab.nochim)
 
+rawotus <- phyloseq(otu_table(asv_tab, taxa_are_rows=T), 
+                    sample_data(info), 
+                    tax_table(as.matrix(taxa)))
 
-``` {R CreatePhyloSeqObjects}
-
-rawotus <- phyloseq(otu_table(seqtab.nochim, taxa_are_rows=T), 
-                    sample_data(metadata), 
-                    tax_table(as.matrix(taxa2)))
 rawotus@sam_data
 nsamples(rawotus)
 head(rawotus@otu_table)
 head(rawotus@tax_table)
+
+```
+
+
+
+
+
+
+``` {R CreatePhyloSeqObjects}
+
 
 #remove any ASVs that appear <50x per sample
 ps_filt_samples <- prune_samples(sample_sums(rawotus)>=500, rawotus)
