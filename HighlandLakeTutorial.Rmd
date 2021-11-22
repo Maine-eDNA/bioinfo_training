@@ -24,9 +24,11 @@ the following lines should be run in the terminal window:
 (creates a document with the sample names to loop through)
 
 ```
-cp work/5K_Highland_18S/* raw_reads/* 
+cp work/5K_Highland_18S/* raw_reads
 
-ls *_R1_001.fastq.gz | cut -f1 -d "S" > samples
+cd raw_reads
+
+ls *_R1_001.fastq.gz | cut -f1 -d "R" > samples
 ```
 
 the following lines should be run in the terminal at the same time:
@@ -48,7 +50,7 @@ the following lines should be run in the terminal window:
 (copies the trimmed reads to your trimmed directory)
 
 ```
-mv raw_reads/*trimmed* trimmed/
+mv *trimmed* ../trimmed/
 
 ```
 
@@ -65,7 +67,7 @@ packageVersion("dada2")
 
 
 ``` {R filenames}
-path <- "work/trimmed" #path where the cutadapted files are
+path <- "trimmed" #path where the cutadapted files are
 list.files(path)
 
 forward_reads <- sort(list.files(path, pattern="_R1_001_trimmed.fastq.gz", full.names = TRUE))
@@ -73,7 +75,7 @@ forward_reads <- sort(list.files(path, pattern="_R1_001_trimmed.fastq.gz", full.
 reverse_reads <- sort(list.files(path, pattern="_R2_001_trimmed.fastq.gz", full.names = TRUE))
 
 
-samples <- sapply(strsplit(basename(forward_reads), "_S"), `[`, 1)
+samples <- sapply(strsplit(basename(forward_reads), "_R"), `[`, 1)
 
 ```
 
@@ -92,7 +94,7 @@ plotQualityProfile(reverse_reads[1:4])
 
 
 ```{r filterNames}
-filterpath <- "work/filtered/" #where our filtered files will live
+filterpath <- "filtered/" #where our filtered files will live
 filtered_reverse_reads <- paste0(filterpath, samples, "_R2_filtered.fq.gz")
 filtered_forward_reads <- paste0(filterpath, samples, "_R1_filtered.fq.gz")
 ```
