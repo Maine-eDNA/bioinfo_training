@@ -266,20 +266,18 @@ library(ggplot2)
 info <- read.table("info_18S.txt", header=T,sep="\t")
 rownames(info) <- rownames(seqtab.nochim)
 
-rawotus <- phyloseq(otu_table(asv_tab, taxa_are_rows=T), 
+rawasvs <- phyloseq(otu_table(asv_tab, taxa_are_rows=T), 
                     sample_data(info), 
                     tax_table(as.matrix(taxa)))
 
-rawotus@sam_data
-nsamples(rawotus)
-head(rawotus@otu_table)
-head(rawotus@tax_table)
+rawasvs@sam_data
+nsamples(rawasvs)
+head(rawavs@otu_table)
+head(rawasvs@tax_table)
 
-#remove any ASVs that appear <20x per sample
-ps_filt_samples <- prune_samples(sample_sums(rawotus)>=20, rawotus)
-#ASVs must appear in more than one sample and in that sample have a count greater than 2
-wh0 <-  genefilter_sample(ps_filt_samples, filterfun_sample(function(x) x > 2), A=2)
-ps <- prune_taxa(wh0, ps_filt_samples)
+
+wh0 <-  genefilter_sample(rawasvs, filterfun_sample(function(x) x > 2), A=2)
+ps <- prune_taxa(wh0, rawasvs)
 
 ```
 
