@@ -18,14 +18,15 @@ mkdir fastqc
 mkdir raw_reads
 mkdir trimmed
 mkdir filtered
+
+cp work/2K_Highland_18S/* raw_reads
 ```
 
-## FastQC Command Line
+## Check Data Quality
 
 the following lines should be run in the terminal window:
 [you should be in your home directory]
 ```
-cp work/2K_Highland_18S/* raw_reads
 fastqc raw_reads/*fastq.gz
 mv raw_reads/*fastqc* fastqc
 ```
@@ -53,7 +54,7 @@ do
 
 echo "On sample: $sample"
     
-cutadapt -a ^CYGCGGTAATTCCAGCTC...CRAAGAYGATYAGATACCRT -A ^AYGGTATCTRATCRTCTTYG...GAGCTGGAATTACCGCRG -m 150 -M 550 --discard-untrimmed -o ${sample}R1_001_trimmed.fastq.gz -p ${sample}R2_001_trimmed.fastq.gz ${sample}R1_001.fastq.gz ${sample}R2_001.fastq.gz >> Env_samples_trimming_stats.txt 2>&1
+cutadapt -a ^CYGCGGTAATTCCAGCTC...CRAAGAYGATYAGATACCRT -A ^AYGGTATCTRATCRTCTTYG...GAGCTGGAATTACCGCRG -m 150 -M 550 --discard-untrimmed -o ${sample}R1_001_trimmed.fastq.gz -p ${sample}R2_001_trimmed.fastq.gz ${sample}R1_001.fastq.gz ${sample}R2_001.fastq.gz >> Cutadapt_trimming_stats.txt 2>&1
 
 done
 
@@ -209,6 +210,8 @@ summary_tab <- data.frame(row.names=samples, dada2_input=filtered_out[,1],
                final_perc_reads_retained=round(rowSums(seqtab.nochim)/filtered_out[,1]*100, 1))
 
 write.table(summary_tab, "read-count-tracking.tsv", quote=FALSE, sep="\t", col.names=NA)
+
+head(summary_tab)
 ```
 
 
@@ -237,7 +240,7 @@ write.table(asv_tab, "ASVs_counts.tsv", sep="\t", quote=F, col.names=NA)
 
 
 ``` {R Assign Taxonomy}
-taxa <- assignTaxonomy(seqtab.nochim, "raw_reads/pr2_version_4.14.0_SSU_dada2.fasta.gz", multithread=T,minBoot=50)
+taxa <- assignTaxonomy(seqtab.nochim, "raw_reads/pr2_version_4.14.0_SSU_dada2.fasta.gz", multithread=T, minBoot=50)
 
 rownames(taxa) <- gsub(pattern=">", replacement="", x=asv_headers)
 
