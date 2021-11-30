@@ -12,20 +12,22 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Set Up CyVerse Working Environment
 
 the following lines should be run in the terminal window:
-[you should be in your home directory]
+cd work/
+
+[you should be in your work directory]
 ```
 mkdir fastqc
 mkdir raw_reads
 mkdir trimmed
 mkdir filtered
 
-cp work/2K_Highland_18S/* raw_reads
+cp ~/work/2K_Highland_18S/* raw_reads
 ```
 
 ## Check Data Quality
 
 the following lines should be run in the terminal window:
-[you should be in your home directory]
+[you should be in your work directory]
 ```
 fastqc raw_reads/*fastq.gz
 mv raw_reads/*fastqc* fastqc
@@ -36,7 +38,7 @@ mv raw_reads/*fastqc* fastqc
 the following lines should be run in the terminal window:
 (copies the raw reads to your working directory)
 (creates a document with the sample names to loop through)
-[start in your home directory]
+[start in your work directory]
 
 ```
 cd raw_reads
@@ -65,7 +67,7 @@ the following lines should be run in the terminal window:
 [you should be in your raw reads directory]
 
 ```
-mv *trimmed* ../trimmed/
+mv *trimmed.fastq.gz ../trimmed/
 
 ```
 
@@ -82,7 +84,7 @@ packageVersion("dada2")
 
 
 ``` {R filenames}
-path <- "trimmed" #path where the cutadapted files are
+path <- "~/work/trimmed/" #path where the cutadapted files are
 list.files(path)
 
 forward_reads <- sort(list.files(path, pattern="_R1_001_trimmed.fastq.gz", full.names = TRUE))
@@ -99,9 +101,14 @@ samples <- sapply(strsplit(basename(forward_reads), "_R"), `[`, 1)
 
 
 ```{r plotQuality}
+library(ggplot2
+)
 #currently only running the first 4 of the list to save time
 plotQualityProfile(forward_reads[1:4])
+ggsave(path="~/work/", filename="forward_quality.png")
+
 plotQualityProfile(reverse_reads[1:4])
+ggsave(path="~/work/", filename="reverse_quality.png")
 ```
 
 
@@ -109,7 +116,7 @@ plotQualityProfile(reverse_reads[1:4])
 
 
 ```{r filterNames}
-filterpath <- "filtered/" #where our filtered files will live
+filterpath <- "~/work/filtered/" #where our filtered files will live
 filtered_reverse_reads <- paste0(filterpath, samples, "_R2_filtered.fq.gz")
 filtered_forward_reads <- paste0(filterpath, samples, "_R1_filtered.fq.gz")
 ```
@@ -130,7 +137,10 @@ filtered_out
 
 ```{r plotQualityFiltered}
 plotQualityProfile(filtered_forward_reads[1:4])
+ggsave(path="~/work/", filename="forward_filtered_quality.png")
+
 plotQualityProfile(filtered_reverse_reads[1:4])
+ggsave(path="~/work/", filename="reverse_filtered_quality.png")
 ```
 
 
@@ -148,7 +158,10 @@ err_reverse_reads <- learnErrors(filtered_reverse_reads)
 
 ```{r plotErrors}
 plotErrors(err_forward_reads, nominalQ=TRUE)
+ggsave(path="~/work/", filename="forward_errors.png")
+
 plotErrors(err_reverse_reads, nominalQ=TRUE)
+ggsave(path="~/work/", filename="reverse_errors.png")
 ```
 
 ## Dereplication
@@ -196,7 +209,7 @@ dim(seqtab.nochim)
 
 sum(seqtab.nochim)/sum(seqtab)
 
-write.csv(seqtab.nochim, "seqtab-nochim.csv")
+write.csv(seqtab.nochim, "~/work/seqtab-nochim.csv")
 ```
 
 ```{r readCounts}
@@ -209,7 +222,7 @@ summary_tab <- data.frame(row.names=samples, dada2_input=filtered_out[,1],
                nonchim=rowSums(seqtab.nochim),
                final_perc_reads_retained=round(rowSums(seqtab.nochim)/filtered_out[,1]*100, 1))
 
-write.table(summary_tab, "read-count-tracking.tsv", quote=FALSE, sep="\t", col.names=NA)
+write.table(summary_tab, "~/work/read-count-tracking.tsv", quote=FALSE, sep="\t", col.names=NA)
 
 head(summary_tab)
 ```
@@ -226,13 +239,13 @@ for (i in 1:dim(seqtab.nochim)[2]) {
 }
 
 asv_fasta <- c(rbind(asv_headers, asv_seqs))
-write(asv_fasta, "ASVs.fa")
+write(asv_fasta, "~/work/ASVs.fa")
 ```
 
 ``` {R CountTable}
 asv_tab <- t(seqtab.nochim)
 row.names(asv_tab) <- sub(">", "", asv_headers)
-write.table(asv_tab, "ASVs_counts.tsv", sep="\t", quote=F, col.names=NA)
+write.table(asv_tab, "~/work/ASVs_counts.tsv", sep="\t", quote=F, col.names=NA)
 ```
 
 
@@ -240,11 +253,11 @@ write.table(asv_tab, "ASVs_counts.tsv", sep="\t", quote=F, col.names=NA)
 
 
 ``` {R Assign Taxonomy}
-taxa <- assignTaxonomy(seqtab.nochim, "raw_reads/pr2_version_4.14.0_SSU_dada2.fasta.gz", multithread=T, minBoot=50)
+taxa <- assignTaxonomy(seqtab.nochim, "~/work/raw_reads/pr2_version_4.14.0_SSU_dada2.fasta.gz", multithread=T, minBoot=50)
 
 rownames(taxa) <- gsub(pattern=">", replacement="", x=asv_headers)
 
-write.csv(taxa, "ASV_taxa.csv")
+write.csv(taxa, "~/work/ASV_taxa.csv")
 ```
 
 
@@ -255,7 +268,7 @@ write.csv(taxa, "ASV_taxa.csv")
 library(phyloseq)
 library(ggplot2)
 
-info <- read.table("raw_reads/info_18S.txt", header=T,sep="\t")
+info <- read.table("~/work/raw_reads/info_18S.txt", header=T,sep="\t")
 rownames(info) <- rownames(seqtab.nochim)
 
 rawasvs <- phyloseq(otu_table(asv_tab, taxa_are_rows=T), 
@@ -285,6 +298,7 @@ p <- plot_bar(ps.top20, x="JulDay", fill="Phylum") +
   scale_x_continuous(breaks=c(186,192,195,199,205,212,219,227,233,241,255,268,285))+
   facet_wrap(~Layer)
 p
+ggsave(p, path="~/work/", filename="abundance.png")
 ```
 
 ``` {R ordinationPlots}
@@ -295,13 +309,15 @@ ord.nmds.bray <- ordinate(ps.prop, method="NMDS", distance="bray")
 
 plot_ordination(ps.prop, ord.nmds.bray, color="Layer",shape="Month_char", title="Bray NMDS")+
   geom_point(size = 7)
-
+ggsave(path="~/work/", filename="bray_NMDS_layer.png")
 
 plot_ordination(ps.prop, ord.nmds.bray, color="Temp",shape="Month_char", title="Bray NMDS")+
   geom_point(size = 7)
+ggsave(path="~/work/", filename="bray_NMDS_temp.png")
 ```
 
 ``` {R RichnessPlot}
 plot_richness(ps, x="Sample.ID",measures=c("Observed", "Shannon", "Chao1"),
               color="Layer", shape="Month_char") 
+ggsave(path="~/work/", filename="richness.png")
 ```
