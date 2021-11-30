@@ -12,9 +12,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ## Set Up CyVerse Working Environment
 
 the following lines should be run in the terminal window:
+```
 cd work/
-
-[you should be in your work directory]
+```
+[you should now be in your work directory]
 ```
 mkdir fastqc
 mkdir raw_reads
@@ -101,8 +102,7 @@ samples <- sapply(strsplit(basename(forward_reads), "_R"), `[`, 1)
 
 
 ```{r plotQuality}
-library(ggplot2
-)
+library(ggplot2)
 #currently only running the first 4 of the list to save time
 plotQualityProfile(forward_reads[1:4])
 ggsave(path="~/work/", filename="forward_quality.png")
@@ -201,11 +201,13 @@ merged_amplicons <- mergePairs(dada_forward,
 ```{r seqtab}
 seqtab <- makeSequenceTable(merged_amplicons)
 dim(seqtab)
+View(seqtab)
 ```
 
 ```{r removeChimeras}
 seqtab.nochim <- removeBimeraDenovo(seqtab, multithread=TRUE, verbose=TRUE)
 dim(seqtab.nochim)
+View(seqtab.nochim)
 
 sum(seqtab.nochim)/sum(seqtab)
 
@@ -222,9 +224,10 @@ summary_tab <- data.frame(row.names=samples, dada2_input=filtered_out[,1],
                nonchim=rowSums(seqtab.nochim),
                final_perc_reads_retained=round(rowSums(seqtab.nochim)/filtered_out[,1]*100, 1))
 
+View(summary_tab)
+
 write.table(summary_tab, "~/work/read-count-tracking.tsv", quote=FALSE, sep="\t", col.names=NA)
 
-head(summary_tab)
 ```
 
 
@@ -239,12 +242,17 @@ for (i in 1:dim(seqtab.nochim)[2]) {
 }
 
 asv_fasta <- c(rbind(asv_headers, asv_seqs))
+
 write(asv_fasta, "~/work/ASVs.fa")
+#click on ASVs.fa to view file in R Environment
 ```
 
 ``` {R CountTable}
 asv_tab <- t(seqtab.nochim)
 row.names(asv_tab) <- sub(">", "", asv_headers)
+
+View(asv_tab)
+
 write.table(asv_tab, "~/work/ASVs_counts.tsv", sep="\t", quote=F, col.names=NA)
 ```
 
