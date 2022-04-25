@@ -277,6 +277,7 @@ library(phyloseq)
 library(ggplot2)
 
 info <- read.table("~/work/data/input/raw_reads/info_18S.txt", header=T,sep="\t")
+# if you have a csv file: info <- read.csv("~/work/raw_reads/info_18S.csv")
 rownames(info) <- rownames(seqtab.nochim)
 
 rawasvs <- phyloseq(otu_table(asv_tab, taxa_are_rows=T), 
