@@ -329,3 +329,11 @@ plot_richness(ps, x="Sample.ID",measures=c("Observed", "Shannon", "Chao1"),
               color="Layer", shape="Month_char") 
 ggsave(path="~/work/", filename="richness.png")
 ```
+
+## Copying data to be Saved
+
+the following lines should be run in the terminal window:
+```
+cp -r ~/work/* ~/work/data/output/
+```
+
