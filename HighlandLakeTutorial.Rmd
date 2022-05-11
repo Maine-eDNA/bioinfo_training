@@ -28,7 +28,7 @@ cp ~/work/data/input/2K_Highland_18S/* raw_reads
 ## Check Data Quality
 
 the following lines should be run in the terminal window:
-[you should be in your work/data/output directory]
+[you should be in your work/ directory]
 ```
 fastqc raw_reads/*fastq.gz
 mv raw_reads/*fastqc* fastqc
@@ -261,7 +261,7 @@ write.table(asv_tab, "~/work/ASVs_counts.tsv", sep="\t", quote=F, col.names=NA)
 
 
 ``` {R Assign Taxonomy}
-taxa <- assignTaxonomy(seqtab.nochim, "~/work/data/input/raw_reads/pr2_version_4.14.0_SSU_dada2.fasta.gz", multithread=T, minBoot=50)
+taxa <- assignTaxonomy(seqtab.nochim, "~/work/raw_reads/pr2_version_4.14.0_SSU_dada2.fasta.gz", multithread=T, minBoot=50)
 
 rownames(taxa) <- gsub(pattern=">", replacement="", x=asv_headers)
 
@@ -276,7 +276,7 @@ write.csv(taxa, "~/work/ASV_taxa.csv")
 library(phyloseq)
 library(ggplot2)
 
-info <- read.table("~/work/data/input/raw_reads/info_18S.txt", header=T,sep="\t")
+info <- read.table("~/work/raw_reads/info_18S.txt", header=T,sep="\t")
 # if you have a csv file: info <- read.csv("~/work/raw_reads/info_18S.csv")
 rownames(info) <- rownames(seqtab.nochim)
 
