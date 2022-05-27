@@ -41,10 +41,12 @@ the following lines should be run in the terminal window:
 (creates a document with the sample names to loop through)
 [start in your work directory]
 
+Note: For the most part, when we receive files they are the names you gave your samples plus a string of letters that contain "R1" or "R2" then often end in "fastq.gz". Currently the below line will identify the substring "R1_" in your file name and truncate it there, as the file name prior to the "R1" tends to be the unique identifier for your samples. If your samples are given to you with a different extension other than "fastq.gz" simply change the first string (*_R1_001.fastq.gz) to match the ending of your file. As long as you do not have "R1_" in your sample names more than once, then this should properly truncate your file names.
+
 ```
 cd raw_reads
 
-ls *_R1_001.fastq.gz | cut -f1 -d "R" > samples
+ls *_R1_001.fastq.gz | awk -F "R1_" '{print $1}' > samples
 ```
 
 the following lines should be run in the terminal at the same time:
